@@ -7,6 +7,10 @@ class ClaudeBurn < Formula
   sha256 "f4473bc3f1f5defd1987c3caa20ee62964e38e3c62503fe8a386405386ada0bb"
   license "MIT"
 
+  bottle do
+    root_url "https://github.com/ghosharkaprava8/homebrew-claude-burn/releases/download/claude-burn-0.1.0"
+  end
+
   depends_on "python@3.13"
 
   resource "click" do

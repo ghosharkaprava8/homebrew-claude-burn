@@ -1,0 +1,126 @@
+name: Build & publish bottles
+
+on:
+  workflow_dispatch:
+    inputs:
+      formula:
+        description: "Formula name"
+        default: claude-burn
+        required: true
+      version:
+        description: "Version (e.g. 0.1.0)"
+        default: "0.1.0"
+        required: true
+  push:
+    branches: [main]
+    paths:
+      - "Formula/**.rb"
+      - ".github/workflows/bottle.yml"
+
+permissions:
+  contents: write
+
+env:
+  FORMULA: ${{ github.event.inputs.formula || 'claude-burn' }}
+  VERSION: ${{ github.event.inputs.version || '0.1.0' }}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-13, macos-14, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Tap self
+        run: brew tap "${GITHUB_REPOSITORY_OWNER}/claude-burn" "$PWD"
+
+      - name: Build bottle
+        run: |
+          set -e
+          FQN="${GITHUB_REPOSITORY_OWNER}/claude-burn/${FORMULA}"
+          ROOT_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${FORMULA}-${VERSION}"
+          brew install --build-bottle --verbose "$FQN"
+          brew bottle --json --no-rebuild --root-url="$ROOT_URL" "$FQN"
+          ls -la *.bottle.* || true
+
+      - name: Rename bottle (homebrew uses -- separator)
+        run: |
+          for f in *--*.bottle.*.tar.gz; do
+            [ -e "$f" ] || continue
+            new="$(echo "$f" | sed 's/--/-/')"
+            mv "$f" "$new"
+          done
+          ls -la *.bottle.* || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bottle-${{ matrix.os }}
+          path: |
+            *.bottle.tar.gz
+            *.bottle.json
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: bottles/
+          merge-multiple: true
+
+      - name: Inspect downloads
+        run: ls -la bottles/
+
+      - name: Tap self (so brew can find formula)
+        run: brew tap "${GITHUB_REPOSITORY_OWNER}/claude-burn" "$PWD"
+
+      - name: Merge bottle JSONs into formula
+        working-directory: bottles
+        run: |
+          set -e
+          brew bottle --merge --write --no-commit *.bottle.json
+
+      - name: Verify formula updated
+        run: |
+          grep -n "sha256" "Formula/${FORMULA}.rb" || true
+
+      - name: Create / update GitHub Release with bottles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          tag="${FORMULA}-${VERSION}"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" \
+              --title "Bottles for ${FORMULA} ${VERSION}" \
+              --notes "Pre-built Homebrew bottles for \`${FORMULA}\` ${VERSION}."
+          fi
+          gh release upload "$tag" bottles/*.bottle.tar.gz --clobber
+
+      - name: Commit formula update
+        run: |
+          set -e
+          if git diff --quiet "Formula/${FORMULA}.rb"; then
+            echo "No formula changes."
+            exit 0
+          fi
+          git config user.name "Arkaprava Ghosh"
+          git config user.email "ghosharkaprava8@gmail.com"
+          git add "Formula/${FORMULA}.rb"
+          git commit -m "chore(${FORMULA}): bottles for ${VERSION}"
+          git push
