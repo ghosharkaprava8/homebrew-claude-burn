@@ -9,6 +9,8 @@ class ClaudeBurn < Formula
 
   bottle do
     root_url "https://github.com/ghosharkaprava8/homebrew-claude-burn/releases/download/claude-burn-0.1.0"
+    sha256 cellar: :any_skip_relocation, arm64_sequoia: "b46f1db24142d065e7123b63bbab5419aa5222e9af5e6b65124d6ba85713c906"
+    sha256 cellar: :any_skip_relocation, arm64_sonoma:  "293bb84fd2bc079f976d4a83801a92ed5d6b84df5bc282934eb5757082a177d0"
   end
 
   depends_on "python@3.13"

@@ -107,6 +107,15 @@ jobs:
         run: |
           grep -n "sha256" "Formula/${FORMULA}.rb" || true
 
+      - name: Rename bottles to single-dash form (brew root_url convention)
+        run: |
+          set -e
+          shopt -s nullglob
+          for f in bottles/*--*.bottle.*.tar.gz; do
+            mv "$f" "${f//--/-}"
+          done
+          ls bottles/
+
       - name: Create / update GitHub Release with bottles
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -131,4 +140,4 @@ jobs:
           git config user.email "ghosharkaprava8@gmail.com"
           git add "Formula/${FORMULA}.rb"
           git commit -m "chore(${FORMULA}): bottles for ${VERSION}"
-          git push
+          git push origin HEAD:${GITHUB_REF#refs/heads/}
