@@ -3,14 +3,12 @@ class ClaudeBurn < Formula
 
   desc "Compact Claude usage tracking after each Claude task"
   homepage "https://github.com/ghosharkaprava8/claude-burn"
-  url "https://files.pythonhosted.org/packages/9f/f8/bc790a2cd4474c7f7a8fc24f8f5da127610502b7eb868140a1fc8aff31a2/claude_burn-0.1.0.tar.gz"
-  sha256 "f4473bc3f1f5defd1987c3caa20ee62964e38e3c62503fe8a386405386ada0bb"
+  url "https://files.pythonhosted.org/packages/33/79/30ff5825083c32903380aa04fbed08c29499028525401dbc97c54b020632/claude_burn-0.1.1.tar.gz"
+  sha256 "e19e2836406cec4bd2e0bd968a7f0b58810c8e9cfe6198f0205def0f01ca2caa"
   license "MIT"
 
   bottle do
-    root_url "https://github.com/ghosharkaprava8/homebrew-claude-burn/releases/download/claude-burn-0.1.0"
-    sha256 cellar: :any_skip_relocation, arm64_sequoia: "b46f1db24142d065e7123b63bbab5419aa5222e9af5e6b65124d6ba85713c906"
-    sha256 cellar: :any_skip_relocation, arm64_sonoma:  "293bb84fd2bc079f976d4a83801a92ed5d6b84df5bc282934eb5757082a177d0"
+    root_url "https://github.com/ghosharkaprava8/homebrew-claude-burn/releases/download/claude-burn-0.1.1"
   end
 
   depends_on "python@3.13"

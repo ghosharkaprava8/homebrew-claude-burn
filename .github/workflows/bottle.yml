@@ -22,7 +22,6 @@ permissions:
 
 env:
   FORMULA: ${{ github.event.inputs.formula || 'claude-burn' }}
-  VERSION: ${{ github.event.inputs.version || '0.1.0' }}
 
 jobs:
   build:
@@ -44,6 +43,14 @@ jobs:
           mkdir -p "$(dirname "$TAP_DIR")"
           rm -rf "$TAP_DIR"
           ln -s "$GITHUB_WORKSPACE" "$TAP_DIR"
+
+      - name: Detect version from formula
+        run: |
+          set -e
+          FQN="${GITHUB_REPOSITORY_OWNER}/claude-burn/${FORMULA}"
+          v="$(brew info --json=v2 "$FQN" | python3 -c 'import json,sys;print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"])')"
+          echo "Detected version: $v"
+          echo "VERSION=$v" >> "$GITHUB_ENV"
 
       - name: Build bottle
         run: |
@@ -96,6 +103,14 @@ jobs:
           mkdir -p "$(dirname "$TAP_DIR")"
           rm -rf "$TAP_DIR"
           ln -s "$GITHUB_WORKSPACE" "$TAP_DIR"
+
+      - name: Detect version from formula
+        run: |
+          set -e
+          FQN="${GITHUB_REPOSITORY_OWNER}/claude-burn/${FORMULA}"
+          v="$(brew info --json=v2 "$FQN" | python3 -c 'import json,sys;print(json.load(sys.stdin)["formulae"][0]["versions"]["stable"])')"
+          echo "Detected version: $v"
+          echo "VERSION=$v" >> "$GITHUB_ENV"
 
       - name: Merge bottle JSONs into formula
         working-directory: bottles
