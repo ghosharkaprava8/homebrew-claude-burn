@@ -156,6 +156,6 @@ jobs:
           git config user.name "Arkaprava Ghosh"
           git config user.email "ghosharkaprava8@gmail.com"
           git add "Formula/${FORMULA}.rb"
-          git commit -m "chore(${FORMULA}): bottles for ${VERSION}"
+          git commit -m "chore(${FORMULA}): bottles for ${VERSION} [skip ci]"
           branch="${GITHUB_REF#refs/heads/}"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${branch}"
