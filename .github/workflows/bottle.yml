@@ -36,10 +36,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: Homebrew/actions/setup-homebrew@master
+      - uses: Homebrew/actions/setup-homebrew@main
 
-      - name: Tap self
-        run: brew tap "${GITHUB_REPOSITORY_OWNER}/claude-burn" "$PWD"
+      - name: Symlink workspace as tap
+        run: |
+          TAP_DIR="$(brew --repository)/Library/Taps/${GITHUB_REPOSITORY_OWNER}/homebrew-claude-burn"
+          mkdir -p "$(dirname "$TAP_DIR")"
+          rm -rf "$TAP_DIR"
+          ln -s "$GITHUB_WORKSPACE" "$TAP_DIR"
 
       - name: Build bottle
         run: |
@@ -76,7 +80,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: Homebrew/actions/setup-homebrew@master
+      - uses: Homebrew/actions/setup-homebrew@main
 
       - uses: actions/download-artifact@v4
         with:
@@ -86,8 +90,12 @@ jobs:
       - name: Inspect downloads
         run: ls -la bottles/
 
-      - name: Tap self (so brew can find formula)
-        run: brew tap "${GITHUB_REPOSITORY_OWNER}/claude-burn" "$PWD"
+      - name: Symlink workspace as tap
+        run: |
+          TAP_DIR="$(brew --repository)/Library/Taps/${GITHUB_REPOSITORY_OWNER}/homebrew-claude-burn"
+          mkdir -p "$(dirname "$TAP_DIR")"
+          rm -rf "$TAP_DIR"
+          ln -s "$GITHUB_WORKSPACE" "$TAP_DIR"
 
       - name: Merge bottle JSONs into formula
         working-directory: bottles
